@@ -8,10 +8,11 @@ clear all;
 clc;
 
 addpath('functions');
-sFreq = 1000;
-%t = ([1:2^12]-1)./sFreq;
-t = ([1:2^8]-1)./sFreq;
-signal = sin(2*pi*10*t)+0.5*sin(2*pi*200*t)+1.5*sin(2*pi*312.4*t);
+sFreq = 20; %1000
+N = 2^5;    %2^12
+t = ([1:N]-1)./sFreq;
+signal = sin(2*pi*2*t); %+0.5*sin(2*pi*200*t)+1.5*sin(2*pi*312.4*t);
+signal(22:end) = 0; %Match C++ code
 tic
 fftSignal = abs(fft(signal));
 toc;
