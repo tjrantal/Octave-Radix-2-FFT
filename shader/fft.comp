@@ -9,10 +9,7 @@ layout(binding = 1) buffer bufB { float b[]; };
 layout(binding = 2) buffer ind { int indices[]; };
 layout(push_constant) uniform PushConstants { float val[3]; } push_const;	//Constants needed to run the FFT iterations
 
-
-#define M_PI 3.1415926535897932384626433832795
-
-
+#define M_PI 3.1415926535897932384626433832795 //Pi
 //Copied from https://github.com/miracle2121/hpc12-fp-rl1609
 //Stockham radix-2 helper functions
 // Complex multiplication
@@ -62,64 +59,15 @@ void main() {
 	}
 	DFT2(u0,u1);// In-place DFT-2
 	if (aIndex == 0){
-		if (0 == 0){
-			b[indj] = u0.x;
-			b[indj+1] = u0.y;
-			b[indj_p] = u1.x;
-			b[indj_p+1] = u1.y;
-			
-			
-		}else{
-			//b[indj] = a[indx];
-			//b[indj+1] = a[indx+1];
-			//b[indj_p] = a[indx_t];
-			//b[indj_p+1] = a[indx_t+1];
-			
-			//b[indj] = alpha;
-			//b[indj+1] = alpha;
-			//b[indj_p] = alpha;
-			//b[indj_p+1] = alpha;
-			
-			b[indj] = u0.x;
-			b[indj+1] = u0.y;
-			b[indj_p] = u1.x;
-			b[indj_p+1] = u1.y;
-			
-			//a[indj] = x;
-			//a[indj+1] = x+t;
-			//a[indj_p] = j;
-			//a[indj_p+1] = j+p;
-			
-			//a[indx] = x;
-			//a[indx+1] = x+t;
-			//a[indx] = indj;
-			//a[indx+1] = indj+1;
-			//a[indx+2*t] = indj_p;
-			//a[indx+2*t+1] = indj_p+1;
-			//a[indj_p] = j;
-			//a[indj_p+1] = j+p;
-			
-			a[indx] = x;
-			a[indx+1] = x+t;
-			a[indx+2*t] = j;
-			a[indx+2*t+1] = j+p;
-			
-			
-		}
+		b[indj] = u0.x;
+		b[indj+1] = u0.y;
+		b[indj_p] = u1.x;
+		b[indj_p+1] = u1.y;
 	}else{
-		if (0 == 0){
-		  a[indj] = u0.x;
-		  a[indj+1] = u0.y;
-		  a[indj_p] = u1.x;
-		  a[indj_p+1] = u1.y;
-	  }else{
-		a[indj] = alpha;
-		a[indj+1] = alpha;
-		a[indj_p] = alpha;
-		a[indj_p+1] = alpha;
-	  }
+		a[indj] = u0.x;
+		a[indj+1] = u0.y;
+		a[indj_p] = u1.x;
+		a[indj_p+1] = u1.y;
 	}
-
-
 }
 
