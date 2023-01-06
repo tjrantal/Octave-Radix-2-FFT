@@ -83,9 +83,7 @@ int main(){
     const std::vector<uint32_t> shader = std::vector<uint32_t>(
       shader::FFT_COMP_SPV.begin(), shader::FFT_COMP_SPV.end());
     std::shared_ptr<kp::Algorithm> algo = mgr.algorithm(params, shader,kp::Workgroup{t, 1, 1},{},pushConstants);
-	//mgr.evalOpDefault(kp::OpTensorCreate)(params);	//Load data to device
 	//mgr.sequence()->record<kp::OpTensorSyncDevice>(params)->eval();	//Load data to device
-	//mgr.sequence() = mgr.sequence()->record<kp::OpAlgoDispatch>(algo);
 	//mgr.sequence()->clear();	//Remove the sync call
 	//Iterate through the FFT here
 	auto start = std::chrono::high_resolution_clock::now();
@@ -97,9 +95,9 @@ int main(){
 			pushConstants[1] = aIndex;	//Update algorithm parameters
 			std::cout << "IN LOOP into eval" << p << " aIndex " << aIndex << std::endl;
 			//mgr.sequence()->record<kp::OpAlgoDispatch>(algo, pushConstants)->eval();	//Update algorithm parameters and evaluate		
+			//mgr.sequence()->clear();	//Remove the queue
 			mgr.sequence()->record<kp::OpTensorSyncDevice>(params)->record<kp::OpAlgoDispatch>(algo, pushConstants)->record<kp::OpTensorSyncLocal>({tensorInA,tensorInB})->eval();	//Update algorithm 
 			std::cout << "PAST eval " << p << std::endl;
-			//mgr.sequence()->clear();	//Remove the queue
      }
 	 std::cout << "PAST loop aIndex " << aIndex << std::endl;
 	 
