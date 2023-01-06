@@ -102,7 +102,6 @@ int main(){
 	 std::cout << "PAST loop aIndex " << aIndex << std::endl;
 	 
 	 //mgr.sequence()->clear();	//Clear the sequence
-	 //mgr.evalOpDefault<kp::OpTensorSyncLocal>({tensorInA,tensorInB});	//Get the data back from the GPU
 	 //mgr.sequence()->record<kp::OpTensorSyncLocal>({tensorInA,tensorInB})->eval(); 
 	 //mgr.sequence()->clear();	//Clear the sequence
 	 std::shared_ptr<kp::TensorT<float>> output = aIndex == 1 ? tensorInA : tensorInB;
