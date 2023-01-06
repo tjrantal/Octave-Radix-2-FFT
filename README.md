@@ -5,13 +5,13 @@ I'm trying to figure out how to implement it with a different foreach call -> co
 
 
 UPDATE 2020/01/05
-Added a [Kompute](https://github.com/KomputeProject/kompute)-enabled [Vulkan](https://www.vulkan.org/) C++ Radix-2 FFT implementation copied and ported from [here](https://github.com/miracle2121/hpc12-fp-rl1609).
+Added a [Kompute](https://github.com/KomputeProject/kompute)-enabled [Vulkan](https://www.vulkan.org/) C++ Radix-2 FFT implementation copied and ported from [here](https://github.com/miracle2121/hpc12-fp-rl1609). The implementation is much slower than FFTW3 so might not be a good way to go. I will use it in my Android apps to replace Renderscript to avoid writing new code.
 
 - Octave (Matlab) script testFFT.m demonstrates that octave fft and the radix-2 produce the same results.
 - c++ implementation - use [cmake](https://cmake.org/) to compile
 	- mkdir build
 	- cd build
-	- cmake .. -DBUILD_SHARED_LIBS:bool=true -DFFTW_USE_STATIC_LIBS:bool=false
+	- cmake ..
 	- cmake --build . -j 4 --config Release
 	- Release\komputeFFT.exe
 	- Depends on Vulkan SDK being installed and added to environment variables as VK_SDK_PATH=C:\VulkanSDK\1.2.198.1 or VULKAN_SDK=C:\VulkanSDK\1.2.198.1. Cannot remember which one worked with cmake
