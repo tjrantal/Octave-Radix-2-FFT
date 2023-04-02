@@ -1,0 +1,77 @@
+#version 450
+#pragma shader_stage(compute)
+precision highp float;	//May be the default in any case
+precision highp int;	//May be the default in any case
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;	//Set workgroup size here
+
+// The buffers are provided via the tensors
+layout(set = 0, binding = 0) buffer bufA { float a[]; };
+layout(set = 0, binding = 1) buffer bufB { float b[]; };
+layout(set = 0, binding = 2) buffer ind { uint indices[]; };
+layout(push_constant) uniform PushConstants { uint val[3]; } push_const;
+
+//Constants needed to run the FFT iterations
+#define M_PI 3.1415926535897932384626433832795
+
+//Copied from https://github.com/miracle2121/hpc12-fp-rl1609
+//Stockham radix-2 helper functions
+// Complex multiplication
+vec2 mul(float ax, float ay,float bx, float by){
+	return vec2(ax*bx-ay*by,ax*by+ay*bx); 
+}
+
+//Twiddle
+vec2 twiddle(float ax, float ay,float alpha)
+{
+	return mul(ax,ay,cos(alpha),sin(alpha));
+}
+
+// In-place DFT-2, output is (a,b). Arguments must be variables.
+void DFT2(inout vec2 a,inout vec2 b) { 
+	vec2 tmp = a - b; 
+	a += b; 
+	b = tmp; 
+}
+
+//Compute shader kernel, i.e., the Radix-2 butterfly function
+void main() {
+	//Iteration constants.
+	uint p = push_const.val[0];
+	uint aIndex = push_const.val[1];
+	uint t = push_const.val[2];
+    uint x = gl_GlobalInvocationID.x;
+
+	//Compute alpha (and butterfly output index)
+	uint k = x & (p-1);           
+	uint j = ((x-k)<<1) + k;     // output index
+	float alpha = -M_PI*float(k)/float(p);
+	
+	//Indices in the float array
+	uint indx = indices[x];
+	uint indx_t = indices[x+t];
+	uint indj = indices[j];
+	uint indj_p = indices[j+p];
+	vec2 u0;
+	vec2 u1;
+	if (aIndex == 0){
+		u0 = vec2(a[indx],a[indx+1]);
+		u1 = twiddle(a[indx_t],a[indx_t+1],alpha);
+	}else{
+		u0 = vec2(b[indx],b[indx+1]);
+		u1 = twiddle(b[indx_t],b[indx_t+1],alpha);
+	}
+	DFT2(u0,u1);// In-place DFT-2
+	if (aIndex == 0){
+		b[indj] = u0.x;
+		b[indj+1] = u0.y;
+		b[indj_p] = u1.x;
+		b[indj_p+1] = u1.y;
+	}else{
+		a[indj] = u0.x;
+		a[indj+1] = u0.y;
+		a[indj_p] = u1.x;
+		a[indj_p+1] = u1.y;
+	}
+} //Main
+
+
