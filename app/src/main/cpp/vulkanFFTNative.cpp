@@ -35,6 +35,7 @@
 	#include "pc_helpers.h"			//Enable using the code for windows pc
 #elif ANDROID
 	#include "android_helpers.h"	//Enable using the code for android
+	#undef LOG_TAG
 	#define LOG_TAG "timo.home.VULKANFFT_CPP"
 #endif
 #include "vulkanFFTNative.h"
@@ -140,10 +141,6 @@ void VulkanFFT::prepSignal(int sampleLength){
 	VkDescriptorBufferInfo outBufferInfo{*outBuffer, 0, dLength*sizeof(float)};
 	VkDescriptorBufferInfo indBufferInfo{*indBuffer, 0, numElements*sizeof(uint32_t)};
 
-	//Copy arrays to GPU
-	copyVectorToGPU(*device,*inBufferMemory,dataIn);
-	copyVectorToGPU(*device,*indBufferMemory,indices);
-	
 	//Create the shader
 	VkShaderModuleCreateInfo shaderModuleCreateInfo{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO, NULL, 0, (*shaderContents).size(), reinterpret_cast<const uint32_t*>(shaderContents->data())};
 
@@ -211,6 +208,9 @@ void VulkanFFT::prepSignal(int sampleLength){
 }
 
 void VulkanFFT::compute(){
+	//Copy data for computations into the GPU
+	copyVectorToGPU(*device,*inBufferMemory,dataIn);
+	copyVectorToGPU(*device,*indBufferMemory,indices);
 	//Prep the command buffer
 	cmdBufferBeginInfo  =  new VkCommandBufferBeginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,NULL,VkCommandBufferUsageFlagBits:: VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,NULL};
 	VkFenceCreateInfo fenceCreateInfo{VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,NULL,VkFenceCreateFlagBits::VK_FENCE_CREATE_SIGNALED_BIT};
@@ -221,9 +221,10 @@ void VulkanFFT::compute(){
 	t = numElements / 2;
     aIndex = 1; // I/O initially placed in index 0 after mod operation
 	p = 1;
-	printBufferFloat("InBuffer",*device, *inBufferMemory, numElements);
+	printBufferFloat((char*) "InBuffer",*device, *inBufferMemory, numElements);
 	auto start = std::chrono::high_resolution_clock::now();
 	values[2] = numElements/2;
+	LOGE("t %d numElements %d\n",t,numElements);
 	for(uint32_t p = 1; p < numElements; p*=2){
 		aIndex = (aIndex + 1) % 2;	//Set aIndex for this iteration
 		//Update push_constants for the iteration
@@ -231,20 +232,18 @@ void VulkanFFT::compute(){
 		values[1] = aIndex;	//Update algorithm parameters
 		vkResetFences(*device,1,fence);	//Reset the fence
 		vkBeginCommandBuffer(*cmdBuffer, cmdBufferBeginInfo);
-		vkCmdPushConstants(*cmdBuffer,*pipelineLayout,VK_SHADER_STAGE_COMPUTE_BIT,0,sizeof(values),&values);	//push_constants
+		vkCmdPushConstants(*cmdBuffer,*pipelineLayout,VK_SHADER_STAGE_COMPUTE_BIT,0,sizeof(uint32_t)*pushConstNo,values);	//push_constants
 		vkCmdBindPipeline(*cmdBuffer,VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_COMPUTE , *computePipeline);
 		vkCmdBindDescriptorSets(*cmdBuffer,VkPipelineBindPoint::VK_PIPELINE_BIND_POINT_COMPUTE ,*pipelineLayout,0,1,descriptorSet,0,NULL);
 		vkCmdDispatch(*cmdBuffer,t, 1, 1);
 		vkEndCommandBuffer(*cmdBuffer);
 		vkQueueSubmit(*queue, 1, &submitInfo, *fence);
 		vkWaitForFences(*device,1,fence,true, uint64_t(-1));
-		//LOGE("p %02d\n",p);
-		//printBufferFloat("IN: ", device, inBufferMemory, numElements);
-		//printBufferFloat("OUT: ", device, outBufferMemory, numElements);
-		
+		LOGE("p %02d\n",p);
+		printBufferFloat((char*) "IN: ", *device, *inBufferMemory, numElements);
+		printBufferFloat((char*) "OUT: ", *device, *outBufferMemory, numElements);
 	}
-	
-	
+	LOGE("PAST LOOP\n");
 	VkDeviceMemory bOut = aIndex == 1 ? *inBufferMemory : *outBufferMemory; //Note that aIndex was incremented after last execution!
 	auto stop = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
@@ -255,8 +254,8 @@ void VulkanFFT::compute(){
 	for (int i = 0; i<numElements/2+1; ++i){
 		oPut.append(" "+std::to_string(round(sqrt(pow(output[2*i],2)+pow(output[2*i+1],2))/(double) (numElements/2)*10000.)/10000.));
 	}
-	std::cout << oPut << "}" << std::endl;
-
+	//std::cout << oPut << "}" << std::endl;
+	LOGE("%s\n",oPut.c_str());
 	delete output;	//Free the allocated output memory
 }
 

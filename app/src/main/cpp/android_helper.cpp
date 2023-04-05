@@ -34,8 +34,7 @@ extern "C"{
 	JNIEXPORT jboolean JNICALL
     Java_timo_home_vulkanFFT_VulkanFFT_prepVulkan(JNIEnv* env, jobject thiz, jobject assetManager, jint sampleLength){
 		vFFT = new VulkanFFT();	//Initialise Vulkan
-		char* cString = "shaders/fft.comp.spv";
-		readAndSetSPV(AAssetManager_fromJava(env, assetManager),cString); //Read the shader .spv with AAsset
+		readAndSetSPV(AAssetManager_fromJava(env, assetManager),(char*) "shaders/fft.comp.spv"); //Read the shader .spv with AAsset
 		vFFT->prepSignal((int32_t) sampleLength);	//Prep signals
 		return JNI_TRUE;
     }

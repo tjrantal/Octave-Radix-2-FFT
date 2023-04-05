@@ -17,7 +17,7 @@ public class VulkanFFT extends AppCompatActivity  {
 	static native boolean prepVulkan(AssetManager manager, int signalLength);
 	static native void compute(float[] arrIn);
     static native void delete();
-    
+    int vulkanReady = 1;
 	
 
 	 private static final String TAG = VulkanFFT.class.getName();
@@ -53,14 +53,18 @@ public class VulkanFFT extends AppCompatActivity  {
 	/*Power saving*/
      protected void onResume() {
 		//Restart vulkanFFT
-		Log.e(TAG,"onResume");
-		prepVulkan(this.getAssets(), 1<<5);
+		if (vulkanReady == 0){
+			Log.e(TAG,"onResume");
+			prepVulkan(this.getAssets(), 1<<5);
+			vulkanReady = 1;
+		}
 		super.onResume();
      }
 
      protected void onPause() {
 		 Log.e(TAG,"onPause");
 		delete();	//Delete the vulkanFFT
+		vulkanReady = 0;
 		finish();	//Remove this, need for debugging
 		super.onPause();
      }

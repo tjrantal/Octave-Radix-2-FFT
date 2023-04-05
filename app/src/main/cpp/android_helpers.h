@@ -31,7 +31,7 @@ void printBufferFloat(char* log, VkDevice device, VkDeviceMemory bufferMemory,ui
 	void* inBufferPtr;
 	vkMapMemory(device, bufferMemory, 0, numElements*sizeof(float) ,0, &inBufferPtr);
 	
-	std::string oPut = log;
+	std::string oPut = std::string(log);
 	oPut.append(":{");
 	for (uint32_t i = 0; i < numElements; ++i){
 		oPut.append(" "+std::to_string(round(((float*) inBufferPtr)[i]*100.)/100.));

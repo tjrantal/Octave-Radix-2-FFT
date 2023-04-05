@@ -9,7 +9,9 @@ class VulkanFFT{
 	
 		std::vector<float> dataIn; //Check if this needs to be a pointer
 		std::vector<int> indices;	//check if this needs to be a pointer
-		uint32_t values[3];
+		uint32_t pushConstNo = 3;
+		uint32_t* values = new  uint32_t[pushConstNo];
+		
 		uint32_t numElements;
 		uint32_t t;
 		uint32_t aIndex; // I/O initially placed in index 0 after mod operation
