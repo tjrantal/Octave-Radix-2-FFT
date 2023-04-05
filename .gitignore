@@ -1,0 +1,5 @@
+*~
+*.class
+build
+app/build
+app/.cxx
